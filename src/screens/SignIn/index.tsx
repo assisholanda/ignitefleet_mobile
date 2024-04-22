@@ -1,11 +1,18 @@
-import { Text, View } from 'react-native';
+import { Container, Title, Slogam} from './styles';
 
-import { styles } from './styles';
+import backgroundImg from '../../assets/background.png';
+
+import { Button } from '../../components/Button';
 
 export function SignIn() {
   return (
-    <View style={styles.container}>
-    </View>
+    <Container source={backgroundImg}>
+      <Title>Ignite Fleet</Title>
+      <Slogam>Gestão de uso de veículos</Slogam>
+
+      <Button title='Entrar com o google' />
+
+    </Container>
   );
 }
 
