@@ -6,6 +6,8 @@ import { Container, Title, Slogam} from './styles';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { WEB_CLIENT_ID, IOS_CLIENT_ID } from '@env';
 
+import { Realm, useApp } from '@realm/react';
+
 import backgroundImg from '../../assets/background.png';
 
 import { Button } from '../../components/Button';
@@ -20,6 +22,8 @@ export function SignIn() {
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
+  const app = useApp();
+
   async function handleGoogleSignIn() {
       
     try {
@@ -29,6 +33,9 @@ export function SignIn() {
 
       if(idToken) {
         
+        const credentials = Realm.Credentials.jwt(idToken);
+        await app.logIn(credentials);
+
       } else {
         Alert.alert("Login", "Não foi possível logar e recuperar seus dados da sua conta Google.");
         setIsAuthenticating(false);
