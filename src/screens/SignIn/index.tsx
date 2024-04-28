@@ -32,9 +32,9 @@ export function SignIn() {
       const { idToken } = await GoogleSignin.signIn();
 
       if(idToken) {
-        
-        const credentials = Realm.Credentials.jwt(idToken);
-        await app.logIn(credentials);
+
+        const credentials = Realm.Credentials.jwt(idToken);        
+        await app.logIn(credentials);        
 
       } else {
         Alert.alert("Login", "Não foi possível logar e recuperar seus dados da sua conta Google.");

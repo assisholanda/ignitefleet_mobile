@@ -16,10 +16,13 @@
     "expo-font": "~11.10.3",
     "expo-status-bar": "~1.11.1",
     "expo-system-ui": "~2.9.4",
+    "phosphor-react-native": "^2.0.0",
     "react": "18.2.0",
     "react-native": "0.73.6",
+    "react-native-svg": "14.1.0",
     "realm": "^12.7.1",
-    "styled-components": "^6.1.8"
+    "styled-components": "^6.1.8",
+    "expo-image": "~1.10.6"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
