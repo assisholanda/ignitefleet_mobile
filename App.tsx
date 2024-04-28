@@ -8,10 +8,11 @@ import { REALM_APP_ID } from '@env';
 import theme from './src/theme';
 import { useFonts, Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
 
+import { Routes } from './src/routes';
+
 import { Loading } from './src/components/Loading';
 
 import { SignIn } from "./src/screens/SignIn";
-import { Home } from './src/screens/Home';
 
 export default function App() {
 
@@ -33,7 +34,7 @@ export default function App() {
           />
 
           <UserProvider fallback={SignIn}>
-            <Home />
+            <Routes />
           </UserProvider>
           
         </ThemeProvider>

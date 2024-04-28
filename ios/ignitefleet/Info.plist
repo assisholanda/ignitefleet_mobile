@@ -68,5 +68,16 @@
     <string>Dark</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
-  </dict>
+    <key>GIDClientID</key>
+    <string>746157863202-nkaelrbdjdl64ntah3d9bof7eabg6bo9.apps.googleusercontent.com</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.746157863202-nkaelrbdjdl64ntah3d9bof7eabg6bo9</string>
+        </array>
+      </dict>
+    </array>
+    </dict>
 </plist>
