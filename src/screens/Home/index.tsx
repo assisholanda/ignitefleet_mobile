@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Alert, FlatList } from 'react-native';
 
+import Toast from 'react-native-toast-message';
+import { CloudArrowUp } from 'phosphor-react-native';
+
 import { Container, Content, Label, Title } from './styles';
 
+import Realm from 'realm';
 import { useUser } from '@realm/react';
 import { useQuery, useRealm } from '../../libs/realm';
 import { Historic } from '../../libs/realm/schemas/Historic';
+
+import { getLastSyncTimestamp, saveLastSyncTimestamp } from '../../libs/asyncStorage/syncStorage';
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -14,11 +20,13 @@ import dayjs from 'dayjs';
 import { HomeHeader } from '../../components/HomeHeader';
 import { CarStatus } from '../../components/CarStatus';
 import { HistoricCard, HistoricCardProps } from '../../components/HistoricCard';
+import { TopMessage } from '../../components/TopMessage';
 
 export function Home() {
 
   const [vehiculoInUse, setVehiculoInUse] = useState<Historic | null>(null);
   const [vehiculoHistoric, setVehiculoHistoric] = useState<HistoricCardProps[]>([]);
+  const [percentageToSync, setPercentageToSync] = useState<string | null>(null);
 
   const user = useUser();
 
@@ -52,7 +60,9 @@ export function Home() {
 
   }
 
-  function fetchHistoric() {
+  async function fetchHistoric() {
+
+    const lastSync = await getLastSyncTimestamp();
 
     try {
 
@@ -63,7 +73,7 @@ export function Home() {
         return ({
           id: item._id!.toString(),
           licensePlate: item.license_plate,
-          isSync: false,
+          isSync: lastSync > item.updated_at!.getTime(),
           created: dayjs(item.created_at).format('[Saída em] DD/MM/YYYY [às] HH:mm')
         });
 
@@ -80,6 +90,29 @@ export function Home() {
 
   function handleHistoricDetails(id: string) {
     navigate('arrival', { id });
+  }
+
+  async function progressNotification( transferred: number, transferable: number) {
+
+      const percentage = (transferred/transferable) * 100;
+
+      if(percentage === 100) {
+        await saveLastSyncTimestamp();
+        await fetchHistoric();
+
+        setPercentageToSync(null);
+
+        Toast.show({
+          type: 'info',
+          text1: 'Todos os dados foram sincronizados.'
+        })
+      }
+
+      if(percentage < 100) {
+        setPercentageToSync(`${percentage.toFixed(0)}% sincronizados.`);
+      }
+
+
   }
 
 
@@ -115,9 +148,29 @@ export function Home() {
 
   }, [realm]);
 
+  useEffect(() => {
+
+    const syncSession = realm.syncSession;
+
+    if(!syncSession) {
+      return;
+    }
+
+    syncSession.addProgressNotification(
+      Realm.ProgressDirection.Upload,
+      Realm.ProgressMode.ReportIndefinitely,
+      progressNotification
+    );
+
+    return () => syncSession.removeProgressNotification(progressNotification);
+
+  }, []);
 
   return (
     <Container>
+
+      { percentageToSync && <TopMessage title={percentageToSync} icon={CloudArrowUp} />  }
+
       <HomeHeader />
 
       <Content>
