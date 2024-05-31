@@ -35,6 +35,8 @@
     <string>1</string>
     <key>GIDClientID</key>
     <string>746157863202-nkaelrbdjdl64ntah3d9bof7eabg6bo9.apps.googleusercontent.com</string>
+    <key>GMSApiKey</key>
+    <string>AIzaSyCTb8u5i582ASDoRMdGmMDihoP46K-SeHc</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSAppTransportSecurity</key>
@@ -44,6 +46,12 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to use your location.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your location</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>
@@ -70,5 +78,16 @@
     <string>Dark</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>GIDClientID</key>
+    <string>746157863202-nkaelrbdjdl64ntah3d9bof7eabg6bo9.apps.googleusercontent.com</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.746157863202-nkaelrbdjdl64ntah3d9bof7eabg6bo9</string>
+        </array>
+      </dict>
+    </array>
   </dict>
 </plist>
