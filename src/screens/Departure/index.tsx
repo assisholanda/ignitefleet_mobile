@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import {
   useForegroundPermissions,
+  requestBackgroundPermissionsAsync,
   watchPositionAsync,
   LocationAccuracy,
   LocationSubscription,
@@ -17,6 +18,8 @@ import {
 import { useUser } from '@realm/react';
 import { useRealm } from '../../libs/realm';
 import { Historic } from '../../libs/realm/schemas/Historic';
+
+import { startLocationTask } from '../../tasks/backgroundLocationTask';
 
 import { Container, Content, Message } from './styles';
 
@@ -30,6 +33,7 @@ import { Map } from '../../components/Map';
 
 import { licensePlateValidate } from '../../utils/licensePlateValidate';
 import { getAddressLocation } from '../../utils/getAddressLocation';
+
 
 
 export function Departure() {
@@ -51,7 +55,7 @@ export function Departure() {
   const descriptionRef = useRef<TextInput>(null);
   const licensePlateRef = useRef<TextInput>(null);
 
-  function handleDepartureRegister() {
+  async function handleDepartureRegister() {
 
     try {
 
@@ -65,7 +69,22 @@ export function Departure() {
         return Alert.alert("Finalidade", "Por favor, informe a finalidade da utilização do veículo.");
       }
 
+      if(!currentCoords?.latitude && !currentCoords?.longitude) {
+        return Alert.alert("Localização", "Não foi possível obter a localização atual. Tente novamente.");
+      }
+
       setIsRegistering(true);
+
+      const backgroundPermissions = requestBackgroundPermissionsAsync();
+
+      if(!backgroundPermissions) {
+
+        setIsRegistering(false);
+        return Alert.alert('Localização", "É necessário permitir que o App tenha acesso a localização em segundo plano. Acesse as configurações do dispositivo e habilite "Permitir o tempo todo".');
+
+      }
+
+      await startLocationTask();
 
       realm.write(() => {
         realm.create('Historic', Historic.generate({
@@ -150,7 +169,17 @@ export function Departure() {
       <KeyboardAwareScrollView extraHeight={150}>
         <ScrollView>
 
-          { currentCoords && <Map coordinates={[currentCoords]} /> }
+          { currentCoords && <Map coordinates={[ currentCoords ]} /> }
+          
+          {/* CODIGO DE TESTE NA MÃO PRA MAIS DE UM MARCADOR 
+            
+            currentCoords && <Map coordinates={[ 
+              { latitude: -23.5657, longitude: -46.6515 },
+              { latitude: -23.5694, longitude: -46.6467 }
+             ]} /> 
+            
+          */
+          }
 
           <Content>
 
