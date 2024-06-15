@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { LatLng } from 'react-native-maps';
 
 import { Container, Content, Description, Footer, Label, LicensePlate, AsyncMessage } from './styles';
 
@@ -10,10 +11,12 @@ import { X } from 'phosphor-react-native';
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { ButtonIcon } from '../../components/ButtonIcon';
+import { Map } from '../../components/Map';
 
 import { BSON } from 'realm';
 import { useObject, useRealm } from '../../libs/realm';
 import { getLastSyncTimestamp } from '../../libs/asyncStorage/syncStorage';
+import { getStorageLocation } from '../../libs/asyncStorage/locationStorage';
 
 import { stopLocationTask } from '../../tasks/backgroundLocationTask';
 
@@ -27,6 +30,7 @@ type RouteParamsProps = {
 export function Arrival() {
 
     const [dataNotSynced, setDataNotSynced] = useState(false);
+    const [coordinates, setCoordinates] = useState<LatLng[]>([]);
 
     const route = useRoute();
     const { id } = route.params as RouteParamsProps;
@@ -51,12 +55,13 @@ export function Arrival() {
 
     }
 
-    function removeVehicleUsage() {
+    async function removeVehicleUsage() {
 
         realm.write(() => {
             realm.delete(historic);
         });
 
+        await stopLocationTask();
         goBack();
 
     }
@@ -69,12 +74,12 @@ export function Arrival() {
                 return Alert.alert('Error', 'Não foi possível obter os dados para registrar a chegada do veículo.');
             }
 
-            await stopLocationTask();
-
             realm.write(() => {
                 historic.status = 'arrival';
                 historic.updated_at = new Date();
             });
+
+            await stopLocationTask();
 
             Alert.alert('Chegada', 'Chegada registrada com sucesso.');
             goBack();
@@ -84,17 +89,33 @@ export function Arrival() {
         }
     }
 
+    async function getLocationInfo() {
+
+        if(!historic) {
+            return;
+        }
+      
+        const lastSync = await getLastSyncTimestamp();
+        const updatedAt = historic!.updated_at.getTime();
+        setDataNotSynced(updatedAt > lastSync);
+
+        const locationsStorage = await getStorageLocation();
+        setCoordinates(locationsStorage);
+    }
+
     useEffect(() => {
-
-        getLastSyncTimestamp()
-            .then(lastSync => setDataNotSynced(historic!.updated_at.getTime() > lastSync));
-
-    }, []);
+        getLocationInfo();
+    }, [historic]);
 
     return (
         <Container>
 
             <Header title={title} />
+
+            {
+              coordinates.length > 0 &&
+              <Map coordinates={coordinates} />  
+            }
 
             <Content>
                 <Label>Placa do veículo</Label>

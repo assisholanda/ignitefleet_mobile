@@ -7,13 +7,12 @@ import {
 
 import * as TaskManager from 'expo-task-manager';
 
-import { saveStorageLocation } from '../libs/asyncStorage/locationStorage';
+import { removeStorageLocation, saveStorageLocation } from '../libs/asyncStorage/locationStorage';
 
 export const BACKGROUND_TASK_NAME = 'location-tracking';
 
 TaskManager.defineTask(BACKGROUND_TASK_NAME, async ({ data, error }: any) => {
 
-    console.log("Entrou na definiçao da TaskManager");
 
     try {
 
@@ -45,18 +44,12 @@ export async function startLocationTask() {
 
     try {
 
-        console.log("Executou função startLocationTask");
-
         const hasStarted = await hasStartedLocationUpdatesAsync(BACKGROUND_TASK_NAME)
 
-        console.log("hasStarted start: ", hasStarted);
-
         if (hasStarted) {
-            console.log("Entrou no if verificando se existe a const hasStarted - chamando a função stopLocationTask");
             await stopLocationTask();
         }
 
-        console.log("inicia a tarefa de fato pela função startLocationUpdateAsync");
         await startLocationUpdatesAsync(BACKGROUND_TASK_NAME, {
             accuracy: Accuracy.Highest,
             distanceInterval: 1,
@@ -73,17 +66,14 @@ export async function stopLocationTask() {
 
     try {
 
-        console.log("Entrou na função stopLocationTask");
-
         const hasStarted = await hasStartedLocationUpdatesAsync(BACKGROUND_TASK_NAME)
-        console.log("hasStarted stop: ", hasStarted);
 
         if (hasStarted) {
-            console.log("Entrou no if que verifica se ja tem a const hasStarted");
-            await stopLocationUpdatesAsync(BACKGROUND_TASK_NAME)
+            await stopLocationUpdatesAsync(BACKGROUND_TASK_NAME);
+            await removeStorageLocation();
         }
 
     } catch (error) {
-        console.log()
+        console.log(error)
     }
 }
