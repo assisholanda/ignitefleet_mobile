@@ -74,9 +74,12 @@ export function Arrival() {
                 return Alert.alert('Error', 'Não foi possível obter os dados para registrar a chegada do veículo.');
             }
 
+            const locations = await getStorageLocation();
+
             realm.write(() => {
                 historic.status = 'arrival';
                 historic.updated_at = new Date();
+                historic.coords.push(...locations)
             });
 
             await stopLocationTask();
@@ -91,16 +94,27 @@ export function Arrival() {
 
     async function getLocationInfo() {
 
-        if(!historic) {
+        if (!historic) {
             return;
         }
-      
+
         const lastSync = await getLastSyncTimestamp();
-        const updatedAt = historic!.updated_at.getTime();
+        const updatedAt= historic!.updated_at.getTime(); 
         setDataNotSynced(updatedAt > lastSync);
 
-        const locationsStorage = await getStorageLocation();
-        setCoordinates(locationsStorage);
+        if(historic?.status === 'departure') {
+            const locationsStorage = await getStorageLocation();
+            setCoordinates(locationsStorage);
+          } else {
+            const coords = historic?.coords.map((coord) => {
+                return {
+                  latitude: coord.latitude,
+                  longitude: coord.longitude
+                }
+              })
+              setCoordinates(coords ?? []);
+          }
+
     }
 
     useEffect(() => {
@@ -113,8 +127,8 @@ export function Arrival() {
             <Header title={title} />
 
             {
-              coordinates.length > 0 &&
-              <Map coordinates={coordinates} />  
+                coordinates.length > 0 &&
+                <Map coordinates={coordinates} />
             }
 
             <Content>
