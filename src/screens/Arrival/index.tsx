@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
+import dayjs from 'dayjs';
+
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { LatLng } from 'react-native-maps';
 
@@ -11,16 +13,21 @@ import { X } from 'phosphor-react-native';
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { ButtonIcon } from '../../components/ButtonIcon';
+import { Locations } from '../../components/Locations';
+import { LocationInfoProps } from '../../components/LocationInfo';
+import { Loading } from '../../components/Loading';
 import { Map } from '../../components/Map';
 
 import { BSON } from 'realm';
 import { useObject, useRealm } from '../../libs/realm';
 import { getLastSyncTimestamp } from '../../libs/asyncStorage/syncStorage';
 import { getStorageLocation } from '../../libs/asyncStorage/locationStorage';
+import { Historic } from '../../libs/realm/schemas/Historic';
 
 import { stopLocationTask } from '../../tasks/backgroundLocationTask';
 
-import { Historic } from '../../libs/realm/schemas/Historic';
+import { getAddressLocation } from '../../utils/getAddressLocation';
+
 
 
 type RouteParamsProps = {
@@ -31,6 +38,9 @@ export function Arrival() {
 
     const [dataNotSynced, setDataNotSynced] = useState(false);
     const [coordinates, setCoordinates] = useState<LatLng[]>([]);
+    const [departure, setDeparture] = useState<LocationInfoProps>({} as LocationInfoProps);
+    const [arrival, setArrival] = useState<LocationInfoProps | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const route = useRoute();
     const { id } = route.params as RouteParamsProps;
@@ -99,27 +109,61 @@ export function Arrival() {
         }
 
         const lastSync = await getLastSyncTimestamp();
-        const updatedAt= historic!.updated_at.getTime(); 
+        const updatedAt = historic!.updated_at.getTime();
         setDataNotSynced(updatedAt > lastSync);
 
-        if(historic?.status === 'departure') {
+        if (historic?.status === 'departure') {
             const locationsStorage = await getStorageLocation();
             setCoordinates(locationsStorage);
-          } else {
+        } else {
             const coords = historic?.coords.map((coord) => {
                 return {
-                  latitude: coord.latitude,
-                  longitude: coord.longitude
+                    latitude: coord.latitude,
+                    longitude: coord.longitude
                 }
-              })
-              setCoordinates(coords ?? []);
-          }
+            })
+
+            setCoordinates(coords ?? []);
+        }
+
+        if (historic?.coords[0]) {
+
+            const departureStreetName = await getAddressLocation(historic?.coords[0]);
+
+            setDeparture({
+                label: `Saindo em ${departureStreetName ?? ''}`,
+                description: dayjs(new Date(historic?.coords[0].timestamp)).format('DD/MM/YYYY [às] HH:mm')
+            });
+
+        }
+
+        if (historic?.status === 'arrival') {
+
+            const lastLocation = historic?.coords[historic?.coords.length - 1];
+
+            const arrivalStreetName = await getAddressLocation(lastLocation);
+
+            setArrival({
+                label: `Chegando em ${arrivalStreetName ?? ''}`,
+                description: dayjs(new Date(lastLocation.timestamp)).format('DD/MM/YYYY [às] HH:mm')
+            });
+
+        }
+
+        setIsLoading(false);
 
     }
 
     useEffect(() => {
         getLocationInfo();
     }, [historic]);
+
+
+    if (isLoading) {
+        return (
+            <Loading />
+        );
+    }
 
     return (
         <Container>
@@ -132,6 +176,13 @@ export function Arrival() {
             }
 
             <Content>
+
+                <Locations
+                    departure={departure}
+                    arrival={arrival}
+                />
+
+
                 <Label>Placa do veículo</Label>
                 <LicensePlate>{historic?.license_plate}</LicensePlate>
 

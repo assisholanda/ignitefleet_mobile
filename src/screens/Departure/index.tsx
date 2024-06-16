@@ -21,7 +21,7 @@ import { Historic } from '../../libs/realm/schemas/Historic';
 
 import { startLocationTask } from '../../tasks/backgroundLocationTask';
 
-import { Container, Content, Message } from './styles';
+import { Container, Content, Message, MessageContent } from './styles';
 
 import { Header } from '../../components/Header';
 import { LicensePlateInput } from '../../components/LIcensePlateInput';
@@ -33,7 +33,7 @@ import { Map } from '../../components/Map';
 
 import { licensePlateValidate } from '../../utils/licensePlateValidate';
 import { getAddressLocation } from '../../utils/getAddressLocation';
-
+import { openSettings } from '../../utils/openSettings';
 
 
 export function Departure() {
@@ -69,7 +69,7 @@ export function Departure() {
         return Alert.alert("Finalidade", "Por favor, informe a finalidade da utilização do veículo.");
       }
 
-      if(!currentCoords?.latitude && !currentCoords?.longitude) {
+      if (!currentCoords?.latitude && !currentCoords?.longitude) {
         return Alert.alert("Localização", "Não foi possível obter a localização atual. Tente novamente.");
       }
 
@@ -77,10 +77,14 @@ export function Departure() {
 
       const backgroundPermissions = requestBackgroundPermissionsAsync();
 
-      if(!backgroundPermissions) {
+      if (!backgroundPermissions) {
 
         setIsRegistering(false);
-        return Alert.alert('Localização", "É necessário permitir que o App tenha acesso a localização em segundo plano. Acesse as configurações do dispositivo e habilite "Permitir o tempo todo".');
+        return Alert.alert(
+          'Localização',
+          'É necessário permitir que o App tenha acesso a localização em segundo plano. Acesse as configurações do dispositivo e habilite "Permitir o tempo todo".',
+          [ { text: 'Abrir configurações do Smartphone', onPress: openSettings } ]
+        );
 
       }
 
@@ -152,8 +156,15 @@ export function Departure() {
     return (
 
       <Container>
+
         <Header title='Saída' />
-        <Message>Você precisa permitir que o aplicativo tenha acesso a localização para utilizar essa funcionalidade. Por favor acesse as configurações do seu dispositivo para conceder essa permissão ao Aplicativo</Message>
+
+        <MessageContent>
+          <Message>Você precisa permitir que o aplicativo tenha acesso a localização para utilizar essa funcionalidade. Por favor acesse as configurações do seu dispositivo para conceder essa permissão ao Aplicativo</Message>
+
+          <Button title='Abrir as configurações do smartphone' onPress={openSettings}/>
+        </MessageContent>
+
       </Container>
 
     )
@@ -174,8 +185,8 @@ export function Departure() {
       <KeyboardAwareScrollView extraHeight={150}>
         <ScrollView>
 
-          { currentCoords && <Map coordinates={[ currentCoords ]} /> }
-          
+          {currentCoords && <Map coordinates={[currentCoords]} />}
+
           {/* CODIGO DE TESTE NA MÃO PRA MAIS DE UM MARCADOR 
             
             currentCoords && <Map coordinates={[ 
